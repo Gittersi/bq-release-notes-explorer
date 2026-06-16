@@ -15,15 +15,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnExportCsv = document.getElementById('btn-export-csv');
     const lastUpdatedTimeEl = document.getElementById('last-updated-time');
     const entriesCountEl = document.getElementById('entries-count');
-    
+
     const inputSearch = document.getElementById('input-search');
     const btnClearSearch = document.getElementById('btn-clear-search');
     const filterPills = document.querySelectorAll('.filter-pill');
     const btnResetFilters = document.getElementById('btn-reset-filters');
     const btnRetry = document.getElementById('btn-retry');
 
+    // Status indicator elements
+    const statusDot  = document.querySelector('.status-indicator');
+    const statusText = document.querySelector('.status-text');
+
     // Track currently visible (filtered) notes for CSV export
     let visibleNotes = [];
+
+    // ── Status Indicator Helper ─────────────────────────────────────────────
+    // state: 'fetching' | 'online' | 'error'
+    function setStatus(state) {
+        statusDot.className = `status-indicator ${state}`;
+        const labels = {
+            fetching: 'Fetching…',
+            online:   'Connected',
+            error:    'Failed'
+        };
+        statusText.textContent = labels[state] ?? state;
+    }
+    // ───────────────────────────────────────────────────────────────────────
 
     // ── Theme Toggle ────────────────────────────────────────────────────────
     const themeCheckbox = document.getElementById('theme-checkbox');
@@ -218,6 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fetch API function
     function fetchReleaseNotes(forceRefresh = false) {
         showState('loading');
+        setStatus('fetching');
         if (forceRefresh) {
             btnRefresh.classList.add('loading');
             btnRefresh.disabled = true;
@@ -235,10 +253,11 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(response => {
                 if (response.success) {
                     releaseNotes = response.data;
-                    
+                    setStatus('online');
+
                     // Update header timestamp
                     lastUpdatedTimeEl.innerHTML = `<i class="fa-solid fa-clock-rotate-left"></i> Cached: ${response.last_fetched}`;
-                    
+
                     filterAndRender();
                 } else {
                     throw new Error(response.error || 'Server reported failure');
@@ -247,6 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(err => {
                 console.error('Fetch error:', err);
                 errorMessageEl.textContent = err.message;
+                setStatus('error');
                 showState('error');
             })
             .finally(() => {
