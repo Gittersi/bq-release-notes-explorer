@@ -25,6 +25,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // Track currently visible (filtered) notes for CSV export
     let visibleNotes = [];
 
+    // ── Theme Toggle ────────────────────────────────────────────────────────
+    const themeCheckbox = document.getElementById('theme-checkbox');
+
+    // Restore saved preference
+    if (localStorage.getItem('theme') === 'light') {
+        document.body.classList.add('light-mode');
+        themeCheckbox.checked = true;
+    }
+
+    themeCheckbox.addEventListener('change', () => {
+        if (themeCheckbox.checked) {
+            document.body.classList.add('light-mode');
+            localStorage.setItem('theme', 'light');
+        } else {
+            document.body.classList.remove('light-mode');
+            localStorage.setItem('theme', 'dark');
+        }
+    });
+    // ───────────────────────────────────────────────────────────────────────
+
+
     // Tweet Modal Elements
     const tweetModal = document.getElementById('tweet-modal');
     const btnCloseModal = document.getElementById('btn-close-modal');

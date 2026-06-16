@@ -13,10 +13,10 @@
     --color-primary: #6366f1;
     --color-primary-hover: #4f46e5;
     --color-accent: #38bdf8;
-    --color-twitter: #e2e8f0; /* Minimalist style uses light grey/white for X */
+    --color-twitter: #e2e8f0;
     --color-twitter-hover: #ffffff;
     
-    /* Release badge colors (flat, desaturated for minimalist look) */
+    /* Release badge colors */
     --badge-feature: #34d399; 
     --badge-feature-bg: rgba(52, 211, 153, 0.08);
     --badge-issue: #f87171; 
@@ -36,6 +36,28 @@
     --transition-normal: 0.25s ease;
 }
 
+/* ── Light Mode Variable Overrides ─────────────────────────────────────── */
+body.light-mode {
+    --bg-primary: #f8fafc;
+    --bg-secondary: #ffffff;
+    --bg-card: #ffffff;
+    --border-color: #e2e8f0;
+    --border-hover: #cbd5e1;
+
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+
+    --color-twitter: #1e293b;
+    --color-twitter-hover: #0f172a;
+
+    --badge-feature-bg: rgba(16, 185, 129, 0.1);
+    --badge-issue-bg:   rgba(239, 68,  68,  0.1);
+    --badge-changed-bg: rgba(245, 158, 11,  0.1);
+    --badge-deprecated-bg: rgba(168, 85, 247, 0.1);
+    --badge-general-bg: rgba(59, 130, 246, 0.1);
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -48,6 +70,7 @@ body {
     font-family: var(--font-sans);
     min-height: 100vh;
     line-height: 1.5;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Disabled/Removed backgrounds */
@@ -732,4 +755,92 @@ textarea#tweet-textarea:focus {
     background-color: #cbd5e1;
     border-color: #cbd5e1;
     transform: none;
+}
+
+/* ── Theme Toggle Switch ─────────────────────────────────────────────────── */
+.theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.theme-icon {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    transition: color 0.3s ease;
+}
+
+/* Active icon highlight */
+body:not(.light-mode) .theme-icon:first-child { color: var(--text-primary); }
+body.light-mode      .theme-icon:last-child  { color: var(--badge-changed); }
+
+.toggle-switch {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+.toggle-switch input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-track {
+    display: block;
+    width: 36px;
+    height: 20px;
+    background-color: var(--border-color);
+    border-radius: 999px;
+    border: 1px solid var(--border-hover);
+    position: relative;
+    transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    background-color: var(--text-secondary);
+    border-radius: 50%;
+    transition: transform 0.25s ease, background-color 0.25s ease;
+}
+
+.toggle-switch input:checked ~ .toggle-track {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.toggle-switch input:checked ~ .toggle-track .toggle-thumb {
+    transform: translateX(16px);
+    background-color: #ffffff;
+}
+
+/* Light mode: invert btn-primary to dark */
+body.light-mode .btn-primary {
+    background-color: var(--text-primary);
+    color: var(--bg-primary);
+    border-color: var(--text-primary);
+}
+
+body.light-mode .btn-primary:hover {
+    background-color: #1e293b;
+    border-color: #1e293b;
+    color: #ffffff;
+}
+
+/* Light mode: fix modal background */
+body.light-mode .modal-card {
+    background-color: #ffffff;
+    border-color: var(--border-color);
+}
+
+body.light-mode textarea#tweet-textarea {
+    background-color: #f8fafc;
+    color: var(--text-primary);
 }

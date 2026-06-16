@@ -34,6 +34,17 @@
             </div>
             <div class="header-actions">
                 <span id="last-updated-time" class="last-updated">Updating...</span>
+
+                <!-- Dark / Light mode toggle -->
+                <div class="theme-toggle" title="Toggle light/dark mode">
+                    <i class="fa-solid fa-moon theme-icon" id="theme-icon"></i>
+                    <label class="toggle-switch" for="theme-checkbox">
+                        <input type="checkbox" id="theme-checkbox" aria-label="Toggle light mode">
+                        <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                    </label>
+                    <i class="fa-solid fa-sun theme-icon" id="theme-icon-sun"></i>
+                </div>
+
                 <button id="btn-export-csv" class="btn btn-secondary" title="Export visible notes to CSV">
                     <i class="fa-solid fa-download btn-icon"></i>
                     <span>Export CSV</span>
