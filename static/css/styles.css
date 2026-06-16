@@ -531,13 +531,15 @@ body {
 /* Card Footer */
 .card-footer {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     align-items: center;
     border: none;
     padding-top: 0;
     margin-top: 0;
+    gap: 1rem;
 }
 
+.btn-copy-action,
 .btn-tweet-action {
     background: none;
     border: none;
@@ -552,10 +554,13 @@ body {
     transition: var(--transition-fast);
 }
 
+.btn-copy-action:hover,
 .btn-tweet-action:hover {
     color: var(--text-primary);
-    transform: none;
-    box-shadow: none;
+}
+
+.btn-copy-action.copied {
+    color: var(--badge-feature);
 }
 
 /* Footer Section */

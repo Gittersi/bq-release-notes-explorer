@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const errorMessageEl = document.getElementById('error-message');
     
     const btnRefresh = document.getElementById('btn-refresh');
+    const btnExportCsv = document.getElementById('btn-export-csv');
     const lastUpdatedTimeEl = document.getElementById('last-updated-time');
     const entriesCountEl = document.getElementById('entries-count');
     
@@ -20,6 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const filterPills = document.querySelectorAll('.filter-pill');
     const btnResetFilters = document.getElementById('btn-reset-filters');
     const btnRetry = document.getElementById('btn-retry');
+
+    // Track currently visible (filtered) notes for CSV export
+    let visibleNotes = [];
 
     // Tweet Modal Elements
     const tweetModal = document.getElementById('tweet-modal');
@@ -44,6 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Event Listeners
     btnRefresh.addEventListener('click', () => fetchReleaseNotes(true));
     btnRetry.addEventListener('click', () => fetchReleaseNotes(true));
+    btnExportCsv.addEventListener('click', exportCSV);
     
     // Search input handler with basic debounce
     let searchDebounceTimeout;
@@ -245,6 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return matchesCategory && matchesSearch;
         });
 
+        visibleNotes = filtered;
         renderNotes(filtered);
     }
 
@@ -300,12 +306,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${note.content_html}
                 </div>
                 <div class="card-footer">
+                    <button class="btn-copy-action" data-index="${index}" title="Copy to clipboard">
+                        <i class="fa-regular fa-copy"></i>
+                        <span>Copy</span>
+                    </button>
                     <button class="btn-tweet-action" onclick="openTweetComposer('${escapeHtml(note.date)}', '${escapeHtml(note.badge)}', \`${escapeBackticks(note.content_text)}\`)">
                         <i class="fa-brands fa-x-twitter"></i>
-                        <span>Tweet Update</span>
+                        <span>Tweet</span>
                     </button>
                 </div>
             `;
+
+            // Attach copy button listener after innerHTML is set
+            const copyBtn = card.querySelector('.btn-copy-action');
+            copyBtn.addEventListener('click', () => copyToClipboard(note, copyBtn));
             
             cardsGrid.appendChild(card);
         });
@@ -333,5 +347,83 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/\\/g, "\\\\")
             .replace(/`/g, "\\`")
             .replace(/\$/g, "\\$");
+    }
+
+    // ── Copy to Clipboard ──────────────────────────────────────────────────
+    function copyToClipboard(note, btn) {
+        const plainText = `BigQuery Release Note — ${note.date} [${note.badge}]\n\n${note.content_text.replace(/\s+/g, ' ').trim()}\n\nhttps://cloud.google.com/bigquery/docs/release-notes`;
+
+        navigator.clipboard.writeText(plainText).then(() => {
+            const icon = btn.querySelector('i');
+            const label = btn.querySelector('span');
+
+            // Visual feedback
+            icon.className = 'fa-solid fa-check';
+            label.textContent = 'Copied!';
+            btn.classList.add('copied');
+
+            setTimeout(() => {
+                icon.className = 'fa-regular fa-copy';
+                label.textContent = 'Copy';
+                btn.classList.remove('copied');
+            }, 2000);
+        }).catch(() => {
+            // Fallback for older browsers
+            const ta = document.createElement('textarea');
+            ta.value = plainText;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+        });
+    }
+
+    // ── Export to CSV ──────────────────────────────────────────────────────
+    function exportCSV() {
+        if (visibleNotes.length === 0) return;
+
+        const csvEscapeField = (val) => {
+            const str = String(val).replace(/"/g, '""');
+            return `"${str}"`;
+        };
+
+        const header = ['Date', 'Category', 'Content', 'Release Notes URL'];
+        const rows = visibleNotes.map(note => [
+            csvEscapeField(note.date),
+            csvEscapeField(note.badge),
+            csvEscapeField(note.content_text.replace(/\s+/g, ' ').trim()),
+            csvEscapeField('https://cloud.google.com/bigquery/docs/release-notes')
+        ]);
+
+        const csvContent = [header.map(csvEscapeField), ...rows]
+            .map(row => row.join(','))
+            .join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+
+        const now = new Date();
+        const timestamp = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+        link.setAttribute('href', url);
+        link.setAttribute('download', `bq-release-notes-${timestamp}.csv`);
+        link.style.display = 'none';
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        // Brief button feedback
+        const icon = btnExportCsv.querySelector('i');
+        const label = btnExportCsv.querySelector('span');
+        icon.className = 'fa-solid fa-check btn-icon';
+        label.textContent = 'Exported!';
+        setTimeout(() => {
+            icon.className = 'fa-solid fa-download btn-icon';
+            label.textContent = 'Export CSV';
+        }, 2000);
     }
 });
